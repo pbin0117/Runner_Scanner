@@ -5,7 +5,7 @@ import numpy as np
 
 import pytesseract
 
-from preprocessing import get_grayscale, get_binary, invert_area, draw_text, detect
+from preprocessing import get_grayscale, get_binary, invert_area, draw_text
 
 
 # source: https://fazlurnucom.wordpress.com/2020/06/23/text-extraction-from-a-table-image-using-pytesseract-and-opencv/
@@ -110,8 +110,8 @@ class Scanner:
         
         return cropped_image, (x1, y1, w, h)
     
-    def extract_records(self):
-        horizontal, vertical = self.detect_lines(display=True)
+    def extract_records(self, p_display=False):
+        horizontal, vertical = self.detect_lines(display=p_display)
 
         records = []
 
@@ -121,7 +121,7 @@ class Scanner:
                             1, i, i+1)
             
             # remove new line
-            text = detect(cropped_image, is_number=False)
+            text = self.detect(cropped_image, is_number=False)
             text = text.strip("\n") 
             runner.append(text)
 
@@ -129,17 +129,25 @@ class Scanner:
                 cropped_image, (x, y, w, h) = self.get_ROI(horizontal, vertical, j,
                             j+1, i, i+1)
                 # remove new line
-                text = detect(cropped_image, is_number=False)
+                text = self.detect(cropped_image, is_number=False)
                 text = text.strip("\n") 
 
                 if (text == ""):
-                    text = detect(cropped_image, is_number=True)
+                    text = self.detect(cropped_image, is_number=True)
                     text = text.strip("\n")
                 runner.append(text)
 
             records.append(runner)
 
         return records
+    
+    def detect(self, cropped_frame, is_number = False):
+        if (is_number):
+            text = pytesseract.image_to_string(cropped_frame,config='--psm 10 --oem 3 -c tessedit_char_whitelist=0123456789.')
+        else:
+            text = pytesseract.image_to_string(cropped_frame)        
+            
+        return text
 
     
 
@@ -148,6 +156,6 @@ if __name__ == "__main__":
     src = np.array(convert_from_path(src)[0])
 
     scanner = Scanner(src)
-    print(scanner.extract_records())
+    print(scanner.extract_records(p_display=True))
 
 
