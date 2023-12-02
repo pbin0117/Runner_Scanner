@@ -20,7 +20,11 @@ class Database(object):
 class Sheet(object):
     def __init__(self, sheetName, document):
         self.sheetName = sheetName
-        self.worksheet = document.worksheet(sheetName)
+
+        try:
+            self.worksheet = document.worksheet(sheetName)
+        except:
+            self.worksheet = document.add_worksheet(title=sheetName, rows=100, cols=20) 
 
     def getCell(self, cellNum):
         return self.worksheet.acell(cellNum).value
@@ -32,8 +36,27 @@ class Sheet(object):
         return self.worksheet.update(cellRange, value)
     
     def pasteSheet400(self, data): # probably will have to put these in subclasses for more specialized methods
+        
         numRunners = len(data)
         numRecords = len(data[0])
+
+        #type of workout
+        self.worksheet.merge_cells("A1:D2", merge_type='MERGE_ALL')
+        self.updateCell("A1:A1", "Type: 400m repeats")
+
+        #date of workout
+        self.worksheet.merge_cells("E1:H2", merge_type='MERGE_ALL')
+        self.updateCell("E1:E1", "Date: 9/10/2023")
+
+        # (name / records)
+        self.updateCell("A3:A3", "Names")
+        
+        for i in range(numRecords-1):
+            cell = chr(66 + i)+"3"
+            self.updateCell(f"{cell}:{cell}", str(i+1))
+
+
+        
 
         rangeRow = 3 + numRunners # 3 being the start of the data input
         rangeColumn = chr(64 + numRecords) # using the ascii table to find the range for columns
@@ -42,22 +65,29 @@ class Sheet(object):
 
         self.updateCell(cellRange, data)
 
+    def readSheet400(self):
+        pass
+
 
 if __name__ == "__main__":
-    src = "Test_Simple.pdf"
-    src = np.array(convert_from_path(src)[0])
+    for i in range(8):
+            cell = chr(66 + i)+"3"
+            print(f"{cell}:{cell}")
+            
+    # src = "Test_Simple.pdf"
+    # src = np.array(convert_from_path(src)[0])
 
-    scanner = Scanner(src)
-    data = scanner.extract_records()
+    # scanner = Scanner(src)
+    # data = scanner.extract_records()
 
-    database = Database("Test")
-    database.addSheet("Sheet1")
+    # database = Database("Test")
+    # database.addSheet("Sheet1")
 
-    testData = [['', '5.46', '4.3', '3.2', '4.3', '24', '3.1', '4.5', '3.1'], 
-                ['Sammy', '1.2', '3.6', '2.1', '6.4', '10.4', '111.1', '2.3', '4'], 
-                ['Harold', '4.1', '2,3', '10.2', '99.1', '7.2', '41', '23', ''],]
+    # testData = [['', '5.46', '4.3', '3.2', '4.3', '24', '3.1', '4.5', '3.1'], 
+    #             ['Sammy', '1.2', '3.6', '2.1', '6.4', '10.4', '111.1', '2.3', '4'], 
+    #             ['Harold', '4.1', '2,3', '10.2', '99.1', '7.2', '41', '23', ''],]
 
-    database.worksheets["Sheet1"].pasteSheet400(data)
+    # database.worksheets["Sheet1"].pasteSheet400(data)
 
     
 
