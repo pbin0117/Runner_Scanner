@@ -14,7 +14,7 @@ class Database(object):
 
 
     def addSheet(self, sheet):
-        self.worksheets[sheet] = Sheet(sheet, self.document)
+        self.worksheets[sheet] = SheetRepeats(sheet, self.document)
 
     
 class Sheet(object):
@@ -30,11 +30,18 @@ class Sheet(object):
         return self.worksheet.acell(cellNum).value
     
     def getCells(self, cellRange):
-        return self.worksheet.get(cellRange).value
+        return self.worksheet.get(cellRange)
     
     def updateCell(self, cellRange, value):
         return self.worksheet.update(cellRange, value)
     
+    
+
+class SheetRepeats(Sheet):
+    def __init__(self, sheetName, document):
+        super().__init__(sheetName,document)
+        self.data = [[]]
+
     def pasteSheet400(self, data): # probably will have to put these in subclasses for more specialized methods
         
         numRunners = len(data)
@@ -55,9 +62,6 @@ class Sheet(object):
             cell = chr(66 + i)+"3"
             self.updateCell(f"{cell}:{cell}", str(i+1))
 
-
-        
-
         rangeRow = 3 + numRunners # 3 being the start of the data input
         rangeColumn = chr(64 + numRecords) # using the ascii table to find the range for columns
 
@@ -65,15 +69,81 @@ class Sheet(object):
 
         self.updateCell(cellRange, data)
 
+        self.updateCell("I1:I1", "Number of Runners: " + str(numRunners))
+        self.updateCell("I2:I2", "Number of Records: " + str(numRecords-1))
+
     def readSheet400(self):
-        pass
+        self.data = self.getCells(f"A4:I30") # automatically cuts off at a None record 
+
+        self.numOfNames = len(self.data)
+        self.numOfRecords = len(self.data[0])-1
+
+        self.calculateAvgTime()
+
+    def calculateAvgTime(self):
+        self.avgTime = []
+        for person in self.data:
+            records = person[1:]
+            sum = 0
+            count = 0
+            for time in records:
+                # convert time to float
+                try:
+                    sum += float(time)
+                    count += 1
+                except:
+                    print("Invalid record") # there are cases where a random character goes in the thing
+
+            avg = round(sum / count, 2)
+
+            self.avgTime.append((person, avg))
+
+    def sortByName(self): # selection sort
+        n = self.numOfNames - 1 # set n to the length of the array
+        while (n > 0):
+            maxIndex = 0
+
+            for i in range(n):
+                if self.avgTime[i][0][0] > self.avgTime[maxIndex][0][0]: # comparing the names 
+                    maxIndex = i
+
+            # swap elements of index n and index maxIndex
+            temp = self.avgTime[maxIndex]
+            self.avgTime[maxIndex] = self.avgTime[n]
+            self.avgTime[n] = temp
+
+            n -= 1
+
+        print(self.avgTime)
+
+    
+
+    def sortByAvgTime(self): # selection sort
+        n = self.numOfNames - 1
+        while (n > 0):
+            maxIndex = 0
+
+            for i in range(n):
+                if self.avgTime[i][1] > self.avgTime[maxIndex][1]: # comparing the names 
+                    maxIndex = i
+
+            # swap elements of index n and index maxIndex
+            temp = self.avgTime[maxIndex]
+            self.avgTime[maxIndex] = self.avgTime[n]
+            self.avgTime[n] = temp
+
+            n -= 1
+
+        
 
 
 if __name__ == "__main__":
-    for i in range(8):
-            cell = chr(66 + i)+"3"
-            print(f"{cell}:{cell}")
-            
+    database = Database("Test")
+    database.addSheet("One")
+
+    database.worksheets["One"].readSheet400()
+    database.worksheets["One"].sortByName()
+    database.worksheets["One"].sortByAvgTime()
     # src = "Test_Simple.pdf"
     # src = np.array(convert_from_path(src)[0])
 
