@@ -15,6 +15,7 @@ from scanner import Scanner
 import numpy as np
 from pdf2image import convert_from_path
 import sys
+import cv2
 
 
 class ScanFileWindow(QtWidgets.QWidget):
@@ -51,6 +52,7 @@ class ScanFileWindow(QtWidgets.QWidget):
         self.btn.setObjectName("btn")
 
         self.sheetSelect = QtWidgets.QComboBox(self.centralwidget)
+        self.sheetSelect.setEditable(True)
         self.sheetSelect.setGeometry(QtCore.QRect(300, 370, 221, 17))
         self.sheetSelect.setObjectName("sheet_select")
         self.sheetSelect.addItems(["Test", "One", "Two"])
@@ -91,7 +93,7 @@ class ScanFileWindow(QtWidgets.QWidget):
         if pdf:
             self.imgfile = np.array(convert_from_path(filename)[0])
         else:
-            self.imgfile = filename
+            self.imgfile = cv2.imread(filename)
 
 
 class PhotoLabel(QtWidgets.QLabel):

@@ -10,6 +10,8 @@ from PyQt5.QtWidgets import QApplication,QMainWindow
 
 from ScanFile import ScanFileWindow
 from MainWindow import MainFileWindow
+from RecordsWindow import RecordsWindow
+
 from database import Database
 from scanner import Scanner
 
@@ -25,10 +27,14 @@ class Gui(QMainWindow):
         
         self.mainFileWindow = MainFileWindow()
         self.scanFileWindow = ScanFileWindow()
+        self.recordsWindow = RecordsWindow()
+
+        self.database = Database("Test")
 
 
         self.mainFileWindow.setupUi(self)
         self.mainFileWindow.ScanFileButton.clicked.connect(self.scanFileButtonFunc)
+        self.mainFileWindow.RecordWindowButton.clicked.connect(self.recordFileButtonFunc)
 
         
         
@@ -36,19 +42,25 @@ class Gui(QMainWindow):
         self.scanFileWindow.setupUi(self)
         self.scanFileWindow.submitButton.clicked.connect(self.submitted)
 
+    def recordFileButtonFunc(self):
+        self.recordsWindow.setupUi(self, self.database)
+        
     def submitted(self):
         googleSheets = self.scanFileWindow.sheetSelect.currentText()
         print(googleSheets)
-        database = Database("Test")
         scanner = Scanner(self.scanFileWindow.imgfile)
 
         data = scanner.extract_records(p_display=True)
-        database.addSheet(googleSheets)
+        self.database.addSheet(googleSheets)
 
-        database.worksheets[googleSheets].pasteSheet400(data)
+        self.database.worksheets[googleSheets].pasteSheet400(data)
 
         self.mainFileWindow.setupUi(self)
         self.mainFileWindow.ScanFileButton.clicked.connect(self.scanFileButtonFunc)
+        self.mainFileWindow.RecordWindowButton.clicked.connect(self.recordFileButtonFunc)
+
+    def onNewWorksheet(self):
+        self.recordsWindow.populateTable(self.database)
     
 
 app = QApplication(sys.argv)

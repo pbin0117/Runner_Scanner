@@ -30,10 +30,10 @@ class MainFileWindow(QtWidgets.QWidget):
         self.ScanFileButton.setObjectName("ScanFileButton")
         self.verticalLayout.addWidget(self.ScanFileButton)
 
-        self.pushButton = QtWidgets.QPushButton(self.verticalLayoutWidget)
-        self.pushButton.setMinimumSize(QtCore.QSize(0, 50))
-        self.pushButton.setObjectName("pushButton")
-        self.verticalLayout.addWidget(self.pushButton)
+        self.RecordWindowButton = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        self.RecordWindowButton.setMinimumSize(QtCore.QSize(0, 50))
+        self.RecordWindowButton.setObjectName("RecordWindowButton")
+        self.verticalLayout.addWidget(self.RecordWindowButton)
 
         self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_2.setGeometry(QtCore.QRect(660, 510, 83, 25))
@@ -49,7 +49,7 @@ class MainFileWindow(QtWidgets.QWidget):
         self.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.Title.setText(_translate("MainWindow", "Cross Country Data Logger"))
         self.ScanFileButton.setText(_translate("MainWindow", "Scan File"))
-        self.pushButton.setText(_translate("MainWindow", "Records"))
+        self.RecordWindowButton.setText(_translate("MainWindow", "Records"))
         self.pushButton_2.setText(_translate("MainWindow", "Accounts"))
 
     
