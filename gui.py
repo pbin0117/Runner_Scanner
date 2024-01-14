@@ -44,6 +44,7 @@ class Gui(QMainWindow):
 
     def recordFileButtonFunc(self):
         self.recordsWindow.setupUi(self, self.database)
+        self.recordsWindow.sheetSelect.currentTextChanged.connect(self.onNewWorksheet)
         
     def submitted(self):
         googleSheets = self.scanFileWindow.sheetSelect.currentText()
@@ -51,9 +52,9 @@ class Gui(QMainWindow):
         scanner = Scanner(self.scanFileWindow.imgfile)
 
         data = scanner.extract_records(p_display=True)
-        self.database.addSheet(googleSheets)
+        self.database.addSheet(googleSheets, data) 
 
-        self.database.worksheets[googleSheets].pasteSheet400(data)
+        self.database.worksheets[googleSheets].pasteSheet(data[2:], data[0], data[1])
 
         self.mainFileWindow.setupUi(self)
         self.mainFileWindow.ScanFileButton.clicked.connect(self.scanFileButtonFunc)

@@ -10,7 +10,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 import database
-
+from database import SheetRepeats, SheetTimeTrial
 
 class RecordsWindow(object):
     def setupUi(self, MainWindow, database):
@@ -116,15 +116,26 @@ class RecordsWindow(object):
 
         try:
             self.wks = database.worksheets[sheet] # select current worksheet
-            self.wks.readSheet400() # read the specific worksheet
+            self.wks.readSheet() # read the specific worksheet
 
             self.tableWidget.setRowCount(self.wks.numOfNames) # set number of rows according to number of runners
-            self.tableWidget.setColumnCount(self.wks.numOfRecords + 1) # set number of columns according to number of records
 
-            # write data into table
-            for i, runner in enumerate(self.wks.data):
-                for j, records in enumerate(runner[0]):
-                    self.tableWidget.setItem(i, j, QtWidgets.QTableWidgetItem(records))
+            self.tableWidget.setColumnCount(self.wks.numOfRecords + 2) # set number of columns according to number of records
+
+            if (type(self.wks) == SheetRepeats):
+                # write data into table
+                for i, runner in enumerate(self.wks.data):
+                    for j, records in enumerate(runner[0]):
+                        self.tableWidget.setItem(i, j, QtWidgets.QTableWidgetItem(records))
+
+                    self.tableWidget.setItem(i, len(runner[0]) + 1, QtWidgets.QTableWidgetItem(runner[1]))
+            if (type(self.wks) == SheetTimeTrial):
+                for i, runner in enumerate(self.wks.data):
+                    print("ah")
+                    self.tableWidget.setItem(i, 0, QtWidgets.QTableWidgetItem(runner[0][0]))
+                    self.tableWidget.setItem(i, 1, QtWidgets.QTableWidgetItem(runner[0][1]))
+                    print(runner[1])
+                    self.tableWidget.setItem(i, 2, QtWidgets.QTableWidgetItem(runner[1]))
         except:
             print("not available")
 

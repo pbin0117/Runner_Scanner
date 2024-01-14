@@ -13,20 +13,32 @@ class Database(object):
         self.worksheets = {}
 
         for worksheet in self.document.worksheets():
-            if len(worksheet.title) >= 10:
+            if len(worksheet.title) >= 15:
                 continue
             print(worksheet.title)
             
-            self.addSheet(worksheet.title)
+            self.addSheet(worksheet.title, worksheet.get("A4:I23"))
 
-    def addSheet(self, sheet):
-        self.worksheets[sheet] = SheetRepeats(sheet, self.document)
+    def addSheet(self, sheet, data):
+        if (len(data) < 2):
+            return None
+
+        # case 1: time trial
+        if (len(data[2]) == 2):
+            self.worksheets[sheet] = SheetTimeTrial(sheet, self.document)
+        # case 2: repeats
+        else:
+            self.worksheets[sheet] = SheetRepeats(sheet, self.document)
 
     
 class Sheet(object):
     def __init__(self):
         self.sheetName = ""
         self.worksheet = None
+        self.numOfNames = 0
+        self.numOfRecords = 1
+
+        self.data = [[]]
 
     def __init__(self, sheetName, document):
         self.sheetName = sheetName
@@ -36,6 +48,11 @@ class Sheet(object):
         except:
             self.worksheet = document.add_worksheet(title=sheetName, rows=100, cols=20) 
 
+        self.numOfNames = 0
+        self.numOfRecords = 1
+
+        self.data = [[]]
+
     def getCell(self, cellNum):
         return self.worksheet.acell(cellNum).value
     
@@ -44,69 +61,9 @@ class Sheet(object):
     
     def updateCell(self, cellRange, value):
         return self.worksheet.update(cellRange, value)
-
-class SheetRepeats(Sheet):
-    def __init__(self, sheetName, document):
-        super().__init__(sheetName,document)
-        self.data = [[]]
-
-    def pasteSheet400(self, data): 
-        
-        numRunners = len(data)
-        numRecords = len(data[0])
-
-        #type of workout
-        self.worksheet.merge_cells("A1:D2", merge_type='MERGE_ALL')
-        self.updateCell("A1:A1", "Type: 400m repeats")
-
-        #date of workout
-        self.worksheet.merge_cells("E1:H2", merge_type='MERGE_ALL')
-        self.updateCell("E1:E1", "Date: 9/10/2023")
-
-        # (name / records)
-        self.updateCell("A3:A3", "Names")
-        
-        for i in range(numRecords-1):
-            cell = chr(66 + i)+"3"
-            self.updateCell(f"{cell}:{cell}", str(i+1))
-
-        rangeRow = 3 + numRunners # 3 being the start of the data input
-        rangeColumn = chr(64 + numRecords) # using the ascii table to find the range for columns
-
-        cellRange = "A4:" + rangeColumn + str(rangeRow)
-
-        self.updateCell(cellRange, data)
-
-        self.updateCell("I1:I1", "Number of Runners: " + str(numRunners))
-        self.updateCell("I2:I2", "Number of Records: " + str(numRecords-1))
-
-    def readSheet400(self):
-        self.rawData = self.getCells(f"A4:I30") # automatically cuts off at a None record 
-
-        self.numOfNames = len(self.rawData)
-        self.numOfRecords = len(self.rawData[0])-1
-
-        self.calculateAvgTime()
-
-    def calculateAvgTime(self):
-        self.data = []
-        for person in self.rawData:
-            records = person[1:]
-            sum = 0
-            count = 0
-            for time in records:
-                # convert time to float
-                try:
-                    sum += float(time)
-                    count += 1
-                except:
-                    print("Invalid record") # there are cases where a random character goes in the thing
-
-            avg = round(sum / count, 2)
-
-            self.data.append((person, avg))
-
+    
     def sortByName(self): # selection sort
+        print(self.data)
         n = self.numOfNames - 1 # set n to the length of the array
         while (n > 0):
             maxIndex = 0
@@ -138,7 +95,124 @@ class SheetRepeats(Sheet):
 
             n -= 1
 
+    def pasteSheet(self, data, typee, date):
+        return None
 
+class SheetTimeTrial(Sheet):
+    def __init__(self, sheetName, document):
+        super().__init__(sheetName, document)
+        self.data = [[]]
+
+    def pasteSheet(self, data, type, date):
+        numRunners = len(data)
+        numRecords = 1
+
+        #type of workout
+        self.worksheet.merge_cells("A1:D2", merge_type='MERGE_ALL')
+        self.updateCell("A1:A1", "5k Time Trial")
+
+        #date of workout
+        self.worksheet.merge_cells("E1:H2", merge_type='MERGE_ALL')
+        self.updateCell("E1:E1", date)
+
+        # (name / records)
+        self.updateCell("A3:A3", "Names")
+        
+        rangeRow = 3 + numRunners # 3 being the start of the data input
+        rangeColumn = "B"
+
+        cellRange = "A4:" + rangeColumn + str(rangeRow)
+
+        self.updateCell(cellRange, data)
+
+        self.updateCell("I1:I1", "Number of Runners: " + str(numRunners))     
+
+    def readSheet(self):
+        self.rawData = self.getCells(f"A4:I30") # automatically cuts off at a None record 
+
+        self.numOfNames = len(self.rawData)
+        self.numOfRecords = len(self.rawData[0])-1
+
+        self.calculateAvgTime()
+
+    def calculateAvgTime(self):
+        self.data = []
+        for person in self.rawData:
+            record = person[1].split(":")
+            time = int(record[0]) * 60 + int(record[1])
+            avg = time / 5
+
+            minute = round(avg // 60)
+            second = round(avg % 60)
+
+            avg = f"{minute}:{second}"
+
+            self.data.append((person, avg))
+        
+
+class SheetRepeats(Sheet):
+    def __init__(self, sheetName, document):
+        super().__init__(sheetName,document)
+        self.data = [[]]
+
+    def pasteSheet(self, data, typee, date): 
+        
+        numRunners = len(data)
+        numRecords = len(data[0])
+
+        #type of workout
+        self.worksheet.merge_cells("A1:D2", merge_type='MERGE_ALL')
+        self.updateCell("A1:A1", typee)
+
+        #date of workout
+        self.worksheet.merge_cells("E1:H2", merge_type='MERGE_ALL')
+        self.updateCell("E1:E1", date)
+
+        # (name / records)
+        self.updateCell("A3:A3", "Names")
+        
+        for i in range(numRecords-1):
+            cell = chr(66 + i)+"3"
+            self.updateCell(f"{cell}:{cell}", str(i+1))
+
+        rangeRow = 3 + numRunners # 3 being the start of the data input
+        rangeColumn = chr(64 + numRecords) # using the ascii table to find the range for columns
+
+        cellRange = "A4:" + rangeColumn + str(rangeRow)
+
+        self.updateCell(cellRange, data)
+
+        self.updateCell("I1:I1", "Number of Runners: " + str(numRunners))
+        self.updateCell("I2:I2", "Number of Records: " + str(numRecords-1))
+
+    def readSheet(self):
+        self.rawData = self.getCells(f"A4:I30") # automatically cuts off at a None record 
+
+        self.numOfNames = len(self.rawData)
+        self.numOfRecords = len(self.rawData[0])-1
+
+        self.calculateAvgTime()
+
+
+    def calculateAvgTime(self):
+        self.data = []
+        for person in self.rawData:
+            records = person[1:]
+            sum = 0
+            count = 0
+            for time in records:
+                # convert time to float
+                try:
+                    sum += float(time)
+                    count += 1
+                except:
+                    print("Invalid record") # there are cases where a random character goes in the thing
+
+            avg = round(sum / count, 2)
+
+            self.data.append((person, avg))
+
+    
 if __name__ == "__main__":
     database = Database("Test")
     database.addSheet("One")

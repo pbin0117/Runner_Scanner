@@ -113,9 +113,28 @@ class Scanner:
     def extract_records(self, p_display=False):
         horizontal, vertical = self.detect_lines(display=p_display)
 
+        print(horizontal, vertical)
+
         records = []
 
-        for i in range(4, 24):
+        # detecting type of workout -- 1h-2h : 0v-4v
+        cropped_image, (x, y, w, h) = self.get_ROI(horizontal, vertical, 0, 4, 1, 2)
+        text = self.detect(cropped_image, is_number=False)
+
+        records.append(text)
+
+        # detecting date -- 0h-1h : 4v-8v
+        cropped_image, (x, y, w, h) = self.get_ROI(horizontal, vertical, 4, 8, 1, 2)
+        text = self.detect(cropped_image, is_number=False)
+
+        records.append(text)
+
+        num_rows = len(vertical)
+        num_cols = len(horizontal)
+        print(num_rows)
+        print(num_cols)
+
+        for i in range(4, num_cols-1):
             runner = []
             cropped_image, (x, y, w, h) = self.get_ROI(horizontal, vertical, 0,
                             1, i, i+1)
@@ -125,7 +144,7 @@ class Scanner:
             text = text.strip("\n") 
             runner.append(text)
 
-            for j in range(1, 9):
+            for j in range(1, num_rows-1):
                 cropped_image, (x, y, w, h) = self.get_ROI(horizontal, vertical, j,
                             j+1, i, i+1)
                 # remove new line
