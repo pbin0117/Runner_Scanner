@@ -2,6 +2,7 @@ import gspread
 from scanner import Scanner
 from pdf2image import convert_from_path
 import numpy as np
+import re
 
 class Database(object):
     def __init__(self, document):
@@ -10,12 +11,16 @@ class Database(object):
         self.sa = gspread.service_account(filename=self.key)
         self.document = self.sa.open(document)
         
+        self.runners = Runners(self.document)
         self.worksheets = {}
 
         for worksheet in self.document.worksheets():
             if len(worksheet.title) >= 15:
                 continue
             print(worksheet.title)
+
+            if (worksheet.title == "Runners"):
+                continue
             
             self.addSheet(worksheet.title, worksheet.get("A4:I23"))
 
@@ -30,7 +35,88 @@ class Database(object):
         else:
             self.worksheets[sheet] = SheetRepeats(sheet, self.document)
 
+class Runners(object):
+    def __init__(self, document):
+        self.worksheet = document.worksheet("Runners")
+
+        self.runners = []
+        self.names = []
+
+        self.loadRunnerFromDatabase()
+
+        print(self.runners)
+
+    def getCell(self, cellNum):
+        return self.worksheet.acell(cellNum).value
     
+    def getCells(self, cellRange):
+        return self.worksheet.get(cellRange)
+    
+    def updateCell(self, cellRange, value):
+        return self.worksheet.update(cellRange, value)
+    
+    def loadRunnerFromDatabase(self):
+        self.data = self.getCells("A1:H200")
+        i = 0
+        while (i < len(self.data)):
+            
+            records = []
+            for j in range(1, len(self.data[i])):
+                record = Record(self.data[0 + i][j], self.data[1 + i][j], self.data[2 + i][j], self.data[3 + i][j])
+                records.append(record)
+
+            name = self.data[i][0]
+            runner = (name, records)
+            self.names.append(name)
+            self.runners.append(runner)
+            i += 4
+
+    def saveRunner(self, name, record):
+        if name in self.names:
+            records = self.runners[name]
+            newCol = len(records) + 1
+
+            rangeColumn = chr(64 + newCol) # using the ascii table to find the range for columns
+
+            index = self.names.index(name)
+            cellRange = rangeColumn + str(index*4) + ":" + rangeColumn + str(index * 4 + 3)
+
+            self.updateCell(cellRange, [[record[0]], [record[1]], [record[2]], [record[3]]])
+
+            records.append(Record(record[0], record[1], record[2], record[3]))
+        else:
+            index = len(self.names)
+            
+            nameCellRange = "A" + str(index * 4) + ":" + "A" + str(index * 4)
+            self.updateCell(nameCellRange, name)
+
+            recordCellRange = "B" + str(index * 4) + ":" + "B" + str(index * 4 + 3)
+            self.updateCell(recordCellRange, [[record[0]], [record[1]], [record[2]], [record[3]]])
+
+            record = Record(record[0], record[1], record[2], record[3])
+            self.runners.append((name, record))
+
+
+class Record(object):
+    def __init__(self, date, type, onekTime, recordedTime):
+        self.date = date
+        self.type = type
+        self.onekTime = onekTime
+        self.recordedTime = recordedTime
+
+    def getDate(self):
+        return self.date
+    
+    def getType(self):
+        return self.type
+
+    def getOneKTime(self):
+        return self.onekTime
+    
+    def getRecordedTime(self):
+        return self.recordedTime
+
+
 class Sheet(object):
     def __init__(self):
         self.sheetName = ""
@@ -138,16 +224,19 @@ class SheetTimeTrial(Sheet):
     def calculateAvgTime(self):
         self.data = []
         for person in self.rawData:
-            record = person[1].split(":")
-            time = int(record[0]) * 60 + int(record[1])
-            avg = time / 5
+            try:
+                record = person[1].split(":")
+                time = int(record[0]) * 60 + int(record[1])
+                avg = time / 5
 
-            minute = round(avg // 60)
-            second = round(avg % 60)
+                minute = round(avg // 60)
+                second = round(avg % 60)
 
-            avg = f"{minute}:{second}"
+                avg = f"{minute}:{second}"
 
-            self.data.append((person, avg))
+                self.data.append((person, avg))
+            except:
+                print("invalid record")
         
 
 class SheetRepeats(Sheet):
@@ -191,6 +280,8 @@ class SheetRepeats(Sheet):
         self.numOfNames = len(self.rawData)
         self.numOfRecords = len(self.rawData[0])-1
 
+        self.distance = int(re.sub('\D', '', self.getCells("A1:D2")))
+
         self.calculateAvgTime()
 
 
@@ -208,7 +299,7 @@ class SheetRepeats(Sheet):
                 except:
                     print("Invalid record") # there are cases where a random character goes in the thing
 
-            avg = round(sum / count, 2)
+            avg = round(sum / count * (1000 / self.distance) , 2)
 
             self.data.append((person, avg))
 
@@ -217,9 +308,6 @@ if __name__ == "__main__":
     database = Database("Test")
     database.addSheet("One")
 
-    database.worksheets["One"].readSheet400()
-    database.worksheets["One"].sortByName()
-    database.worksheets["One"].sortByAvgTime()
     # src = "Test_Simple.pdf"
     # src = np.array(convert_from_path(src)[0])
 
