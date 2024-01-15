@@ -11,6 +11,12 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import database
 from database import SheetRepeats, SheetTimeTrial
+import matplotlib
+
+matplotlib.use('Qt5Agg')
+
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+from matplotlib.figure import Figure
 
 class RecordsWindow(object):
     def setupUi(self, MainWindow, database):
@@ -121,6 +127,16 @@ class RecordsWindow(object):
         self.exitButton.setText(_translate("MainWindow", "Exit"))
         self.RecordsLabel.setText(_translate("MainWindow", "Records"))
 
+    def showRunnerSpecificWindow(self, database):
+        runner = self.runnerSelect.currentText()
+
+        i = database.runners.names.index(runner)
+
+        self.w = RunnerSpecificWindow(database.runners.runners[i])
+        self.w.show()
+
+
+
     def populateTable(self, database):
         sheet = self.sheetSelect.currentText()
 
@@ -166,8 +182,60 @@ class RecordsWindow(object):
                 for j, records in enumerate(runner[0]):
                     self.tableWidget.setItem(i, j, QtWidgets.QTableWidgetItem(records))
 
+class RunnerSpecificWindow(QtWidgets.QWidget):
+    def __init__(self, runner):
+        super().__init__()
 
+        self.runner = runner 
 
+        layout = QtWidgets.QVBoxLayout()
+        self.label = QtWidgets.QLabel(self.runner[0] + " Records")
+        layout.addWidget(self.label)
+
+        self.tableWidget = QtWidgets.QTableWidget(self)
+        self.tableWidget.setMaximumSize(QtCore.QSize(550, 16777215))
+        self.tableWidget.setObjectName("tableWidget")
+
+        col = 4
+        row = len(self.runner[1])
+        self.tableWidget.setColumnCount(col)
+        self.tableWidget.setRowCount(row)
+
+        print(runner[1])
+        for i, record in enumerate(runner[1]):
+            self.tableWidget.setItem(i, 0, QtWidgets.QTableWidgetItem(record.getDate()))
+            self.tableWidget.setItem(i, 1, QtWidgets.QTableWidgetItem(record.getType()))
+            self.tableWidget.setItem(i, 2, QtWidgets.QTableWidgetItem(record.getOneKTime()))
+            self.tableWidget.setItem(i, 3, QtWidgets.QTableWidgetItem(record.getRecordedTime()))
+
+        layout.addWidget(self.tableWidget)
+
+        self.plotGraph = MplCanvas(self, width=5, height=4, dpi=100)
+        dates = [record.getDate() for record in runner[1]]
+        times = [record.getOneKTime() for record in runner[1]]
+
+        newTime = []
+        # transform into comparable floats
+        for time in times:
+            temp = time.split(":")
+            newTime.append(round(int(temp[0]) + int(temp[1])/60, 2))
+
+        
+
+        self.plotGraph.axes.plot(dates, newTime)
+
+        layout.addWidget(self.plotGraph)
+
+        
+            
+
+        self.setLayout(layout)
+
+class MplCanvas(FigureCanvasQTAgg):
+    def __init__(self, parent=None, width=5, height=4, dpi=100):
+        fig = Figure(figsize=(width, height), dpi=dpi)
+        self.axes = fig.add_subplot(111)
+        super(MplCanvas, self).__init__(fig)
 
         
 

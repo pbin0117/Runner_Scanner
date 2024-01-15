@@ -46,6 +46,7 @@ class Gui(QMainWindow):
         self.recordsWindow.setupUi(self, self.database)
         self.recordsWindow.sheetSelect.currentTextChanged.connect(self.onNewWorksheet)
         self.recordsWindow.exitButton.clicked.connect(self.exitRecordScreen)
+        self.recordsWindow.runnerSelectButton.clicked.connect(self.runnerRecordScreen)
         
     def submitted(self):
         googleSheets = self.scanFileWindow.sheetSelect.currentText()
@@ -68,6 +69,9 @@ class Gui(QMainWindow):
         self.mainFileWindow.setupUi(self)
         self.mainFileWindow.ScanFileButton.clicked.connect(self.scanFileButtonFunc)
         self.mainFileWindow.RecordWindowButton.clicked.connect(self.recordFileButtonFunc)
+
+    def runnerRecordScreen(self):
+        self.recordsWindow.showRunnerSpecificWindow(self.database)
     
 
 app = QApplication(sys.argv)
