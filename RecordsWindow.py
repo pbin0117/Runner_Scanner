@@ -71,6 +71,10 @@ class RecordsWindow(object):
 
         self.runnerSelect = QtWidgets.QComboBox(self.horizontalLayoutWidget)
         self.runnerSelect.setObjectName("runnerSelect")
+
+        self.runnerSelectButton = QtWidgets.QPushButton(self.horizontalLayoutWidget)
+        self.runnerSelectButton.setObjectName("runnerSelectButton")
+
         self.verticalLayout.addWidget(self.runnerSelect)
 
         self.horizontalLayout.addLayout(self.verticalLayout)

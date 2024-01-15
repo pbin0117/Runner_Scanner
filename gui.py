@@ -54,7 +54,7 @@ class Gui(QMainWindow):
         data = scanner.extract_records(p_display=True)
         self.database.addSheet(googleSheets, data) 
 
-        self.database.worksheets[googleSheets].pasteSheet(data[2:], data[0], data[1])
+        self.database.worksheets[googleSheets].pasteSheet(data[2:], data[0], data[1], self.database)
 
         self.mainFileWindow.setupUi(self)
         self.mainFileWindow.ScanFileButton.clicked.connect(self.scanFileButtonFunc)

@@ -113,8 +113,6 @@ class Scanner:
     def extract_records(self, p_display=False):
         horizontal, vertical = self.detect_lines(display=p_display)
 
-        print(horizontal, vertical)
-
         records = []
 
         # detecting type of workout -- 1h-2h : 0v-4v
@@ -131,8 +129,6 @@ class Scanner:
 
         num_rows = len(vertical)
         num_cols = len(horizontal)
-        print(num_rows)
-        print(num_cols)
 
         for i in range(4, num_cols-1):
             runner = []
