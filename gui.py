@@ -6,7 +6,7 @@
 
 
 from PyQt5 import QtCore, QtWidgets,  QtGui
-from PyQt5.QtWidgets import QApplication,QMainWindow
+from PyQt5.QtWidgets import QMainWindow
 
 from ScanFile import ScanFileWindow
 from MainWindow import MainFileWindow
@@ -74,10 +74,3 @@ class Gui(QMainWindow):
         self.recordsWindow.showRunnerSpecificWindow(self.database)
     
 
-app = QApplication(sys.argv)
-
-win = Gui()
-
-
-win.show()
-sys.exit(app.exec_())
