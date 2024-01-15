@@ -71,11 +71,16 @@ class RecordsWindow(object):
 
         self.runnerSelect = QtWidgets.QComboBox(self.horizontalLayoutWidget)
         self.runnerSelect.setObjectName("runnerSelect")
+        self.verticalLayout.addWidget(self.runnerSelect)
+
+        for name in database.runners.names:
+            self.runnerSelect.addItem(name)
 
         self.runnerSelectButton = QtWidgets.QPushButton(self.horizontalLayoutWidget)
         self.runnerSelectButton.setObjectName("runnerSelectButton")
+        self.verticalLayout.addWidget(self.runnerSelectButton)
 
-        self.verticalLayout.addWidget(self.runnerSelect)
+        
 
         self.horizontalLayout.addLayout(self.verticalLayout)
         # ----------------------End Vertical Layout-------------------------------------------
@@ -97,6 +102,10 @@ class RecordsWindow(object):
         self.RecordsLabel.setFont(font)
         self.RecordsLabel.setObjectName("RecordsLabel")
 
+        self.exitButton = QtWidgets.QPushButton(self.centralwidget)
+        self.exitButton.setGeometry(QtCore.QRect(660, 30, 83, 25))
+        self.exitButton.setObjectName("exitButton")
+
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
@@ -113,6 +122,8 @@ class RecordsWindow(object):
         self.organizeSelect.setItemText(0, _translate("MainWindow", "Alphabetically (A-Z)"))
         self.organizeSelect.setItemText(1, _translate("MainWindow", "Average Time"))
         self.SearchRunnerLabel.setText(_translate("MainWindow", "Search Runner"))
+        self.runnerSelectButton.setText(_translate("MainWindow", "Search"))
+        self.exitButton.setText(_translate("MainWindow", "Exit"))
         self.RecordsLabel.setText(_translate("MainWindow", "Records"))
 
     def populateTable(self, database):
@@ -135,10 +146,8 @@ class RecordsWindow(object):
                     self.tableWidget.setItem(i, len(runner[0]) + 1, QtWidgets.QTableWidgetItem(runner[1]))
             if (type(self.wks) == SheetTimeTrial):
                 for i, runner in enumerate(self.wks.data):
-                    print("ah")
                     self.tableWidget.setItem(i, 0, QtWidgets.QTableWidgetItem(runner[0][0]))
                     self.tableWidget.setItem(i, 1, QtWidgets.QTableWidgetItem(runner[0][1]))
-                    print(runner[1])
                     self.tableWidget.setItem(i, 2, QtWidgets.QTableWidgetItem(runner[1]))
         except:
             print("not available")
