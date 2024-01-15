@@ -37,11 +37,9 @@ class RecordsWindow(object):
         self.verticalLayout.addWidget(self.GoogleSheetLabel)
 
         self.sheetSelect = QtWidgets.QComboBox(self.horizontalLayoutWidget)
-        self.sheetSelect.setEditable(True)
         self.sheetSelect.setObjectName("sheetSelect")
-        self.sheetSelect.addItem("Test")
-        self.sheetSelect.addItem("One")
-        self.sheetSelect.addItem("Two")
+        for sheetName in database.worksheets.keys():
+            self.sheetSelect.addItem(sheetName)
         self.verticalLayout.addWidget(self.sheetSelect)
 
         spacerItem = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
@@ -115,9 +113,6 @@ class RecordsWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.GoogleSheetLabel.setText(_translate("MainWindow", "GoogleSheet"))
-        self.sheetSelect.setItemText(0, _translate("MainWindow", "Test"))
-        self.sheetSelect.setItemText(1, _translate("MainWindow", "One"))
-        self.sheetSelect.setItemText(2, _translate("MainWindow", "Two"))
         self.OrganizeLabel.setText(_translate("MainWindow", "Organize by:"))
         self.organizeSelect.setItemText(0, _translate("MainWindow", "Alphabetically (A-Z)"))
         self.organizeSelect.setItemText(1, _translate("MainWindow", "Average Time"))
