@@ -111,7 +111,7 @@ class Runners(object):
         index = self.names.index(name)
         runner = self.runners[index]
 
-        
+
 
 
 class Record(object):
@@ -333,20 +333,36 @@ class SheetRepeats(Sheet):
         self.data = []
         self.otheravg = []
         for person in self.rawData:
-            records = person[1:]
+            records = person[1:]  
             sum = 0
             count = 0
             for time in records:
+                temp = time.split(":")
+                if (len(temp) < 2):
+                    print("Invalid record")
+                    continue
+                if (int(temp[0]) > 30):
+                    print("Invalid record")
+                    continue
+                print(temp)
+                temp = int(temp[0]) * 60 + int(temp[1])
                 # convert time to float
                 try:
-                    sum += float(time)
+                    sum += temp
                     count += 1
                 except:
                     print("Invalid record") # there are cases where a random character goes in the thing
 
             self.avg = round(sum / count, 2)
+            minute = round(self.avg // 60)
+            second = round(self.avg % 60)
+
+            self.avg = f"{minute}:{second}"
+
             otheravg = round(sum / count * (1000/400), 2)
-            self.otheravg.append(otheravg)
+            minute = round(otheravg // 60)
+            second = round(otheravg % 60)
+            self.otheravg.append(f"{minute}:{second}")
             
 
             self.data.append((person, self.avg))
