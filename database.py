@@ -169,8 +169,8 @@ class Sheet(object):
         for ind in range(n):
             minIndex = ind
 
-            for j in range(ind+1, n):
-                if self.data[j][0][0] < self.data[minIndex][0][0]:
+            for j in range(n):
+                if self.data[j][0][0] > self.data[minIndex][0][0]:
                     minIndex = j
 
                 (self.data[ind], self.data[minIndex]) = (self.data[minIndex], self.data[ind])
@@ -181,8 +181,8 @@ class Sheet(object):
         for ind in range(n):
             minIndex = ind
 
-            for j in range(ind+1, n):
-                if self.data[j][1] < self.data[minIndex][1]:
+            for j in range(n):
+                if self.data[j][1] > self.data[minIndex][1]:
                     minIndex = j
 
                 (self.data[ind], self.data[minIndex]) = (self.data[minIndex], self.data[ind])
