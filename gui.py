@@ -23,7 +23,7 @@ class Gui(QMainWindow):
         super(Gui, self).__init__()
 
         self.setGeometry(200, 200, 800, 600)
-        self.setWindowTitle("weeeee")
+        self.setWindowTitle("Cross Country Data Logger")
         
         self.mainFileWindow = MainFileWindow()
         self.scanFileWindow = ScanFileWindow()
@@ -55,6 +55,9 @@ class Gui(QMainWindow):
 
         data = scanner.extract_records(p_display=True)
         self.database.addSheet(googleSheets, data) 
+
+        print(data)
+        print(type(self.database.worksheets[googleSheets]))
 
         self.database.worksheets[googleSheets].pasteSheet(data[2:], data[0], data[1], self.database)
 

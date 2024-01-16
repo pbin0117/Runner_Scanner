@@ -22,9 +22,9 @@ class Database(object):
             if (worksheet.title == "Runners"):
                 continue
             
-            self.addSheet(worksheet.title, worksheet.get("A4:I23"))
+            self.addSheet(worksheet.title, worksheet.get("A4:I23"), fromDatabase=True)
 
-    def addSheet(self, sheet, data):
+    def addSheet(self, sheet, data, fromDatabase=False):
         if (len(data) < 2):
             return None
 
@@ -36,10 +36,12 @@ class Database(object):
         # case 1: time trial
         if (count <= 2):
             self.worksheets[sheet] = SheetTimeTrial(sheet, self.document)
-            self.worksheets[sheet].readSheet()
         # case 2: repeats
         else:
             self.worksheets[sheet] = SheetRepeats(sheet, self.document)
+
+        if fromDatabase:
+            self.worksheets[sheet].readSheet()
             
 
 class Runners(object):
@@ -91,7 +93,6 @@ class Runners(object):
 
             self.updateCell(cellRange, [[record[0]], [record[1]], [record[2]], [record[3]]])
             
-            print(records)
             records[1].append(Record(record[0], record[1], record[2], record[3]))
 
             self.runners[index] = records
@@ -107,9 +108,6 @@ class Runners(object):
             record = [Record(record[0], record[1], record[2], record[3])]
             self.runners.append((name, record))
             self.names.append(name)
-    def writeRunnerToScreen(self, name):
-        index = self.names.index(name)
-        runner = self.runners[index]
 
 
 
@@ -166,36 +164,28 @@ class Sheet(object):
         return self.worksheet.update(cellRange, value)
     
     def sortByName(self): # selection sort
-        n = self.numOfNames - 1 # set n to the length of the array
-        while (n > 0):
-            maxIndex = 0
+        n = self.numOfNames # set n to the length of the array
 
-            for i in range(n):
-                if self.data[i][0][0] > self.data[maxIndex][0][0]: # comparing the names 
-                    maxIndex = i
+        for ind in range(n):
+            minIndex = ind
 
-            # swap elements of index n and index maxIndex
-            temp = self.data[maxIndex]
-            self.data[maxIndex] = self.data[n]
-            self.data[n] = temp
+            for j in range(ind+1, n):
+                if self.data[j][0][0] < self.data[minIndex][0][0]:
+                    minIndex = j
 
-            n -= 1
+                (self.data[ind], self.data[minIndex]) = (self.data[minIndex], self.data[ind])
 
     def sortByAvgTime(self): # selection sort
-        n = self.numOfNames - 1
-        while (n > 0):
-            maxIndex = 0
+        n = self.numOfNames
 
-            for i in range(n):
-                if self.data[i][1] > self.data[maxIndex][1]: # comparing the avgtime 
-                    maxIndex = i
+        for ind in range(n):
+            minIndex = ind
 
-            # swap elements of index n and index maxIndex
-            temp = self.data[maxIndex]
-            self.data[maxIndex] = self.data[n]
-            self.data[n] = temp
+            for j in range(ind+1, n):
+                if self.data[j][1] < self.data[minIndex][1]:
+                    minIndex = j
 
-            n -= 1
+                (self.data[ind], self.data[minIndex]) = (self.data[minIndex], self.data[ind])
 
     def pasteSheet(self, data, typee, date):
         return None
@@ -224,9 +214,6 @@ class SheetTimeTrial(Sheet):
         rangeColumn = chr(64 + numRecords)
 
         cellRange = "A4:" + rangeColumn + str(rangeRow)
-        print(cellRange)
-        print(len(data))
-        print(len(data[0]))
 
         self.updateCell(cellRange, data)
 
@@ -237,16 +224,14 @@ class SheetTimeTrial(Sheet):
 
         # update the runners database
         for runner in self.data:
-            print(runner)
             record = [date[5:], type[5:], runner[1], runner[0][1]]
-            print(record)
             database.runners.saveRunner(runner[0][0], record)
 
     def readSheet(self):
         self.rawData = self.getCells(f"A4:I30") # automatically cuts off at a None record 
 
         self.numOfNames = len(self.rawData)
-        self.numOfRecords = len(self.rawData[0])-1
+        self.numOfRecords = len(self.rawData[0]) - 1
 
         self.calculateAvgTime()
 
@@ -261,10 +246,17 @@ class SheetTimeTrial(Sheet):
                 minute = round(avg // 60)
                 second = round(avg % 60)
 
+                if second == 0:
+                    second = "00"
+
+                if second < 10:
+                    second= "0" +str(second)
+
                 avg = f"{minute}:{second}"
 
                 self.data.append((person, avg))
             except:
+                self.data.append((person, "error"))
                 print("invalid record")
         
 
@@ -308,9 +300,7 @@ class SheetRepeats(Sheet):
         self.calculateAvgTime()
 
         for i, runner in enumerate(self.data):
-            print(runner)
             record = [date[5:], typee[5:], self.otheravg[i], runner[1]]
-            print(record)
             database.runners.saveRunner(runner[0][0], record)
 
         self.readSheet()
@@ -339,23 +329,29 @@ class SheetRepeats(Sheet):
             for time in records:
                 temp = time.split(":")
                 if (len(temp) < 2):
-                    print("Invalid record")
+                    print("Invalid record split wrong")
                     continue
                 if (int(temp[0]) > 30):
-                    print("Invalid record")
+                    print("Invalid record over explanable limit")
                     continue
-                print(temp)
-                temp = int(temp[0]) * 60 + int(temp[1])
+                
                 # convert time to float
                 try:
+                    temp = int(temp[0]) * 60 + int(temp[1])
                     sum += temp
                     count += 1
                 except:
-                    print("Invalid record") # there are cases where a random character goes in the thing
+                    print("Invalid record not a number") # there are cases where a random character goes in the thing
 
             self.avg = round(sum / count, 2)
             minute = round(self.avg // 60)
             second = round(self.avg % 60)
+
+            if second == 0:
+                second = "00"
+
+            if second < 10:
+                second= "0" +str(second)
 
             self.avg = f"{minute}:{second}"
 

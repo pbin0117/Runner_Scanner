@@ -139,7 +139,6 @@ class RecordsWindow(object):
 
     def populateTable(self, database):
         sheet = self.sheetSelect.currentText()
-
         try:
             self.wks = database.worksheets[sheet] # select current worksheet
             self.wks.readSheet() # read the specific worksheet
@@ -164,7 +163,7 @@ class RecordsWindow(object):
             print("not available")
 
     def organizeTable(self):
-        if self.wks == None:
+        if self.wks.data == []:
             return
         
         organizeCrit = self.organizeSelect.currentText()
