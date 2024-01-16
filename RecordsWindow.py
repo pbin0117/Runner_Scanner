@@ -156,9 +156,10 @@ class RecordsWindow(object):
                     self.tableWidget.setItem(i, len(runner[0]) + 1, QtWidgets.QTableWidgetItem(runner[1]))
             if (type(self.wks) == SheetTimeTrial):
                 for i, runner in enumerate(self.wks.data):
+                    self.tableWidget.setItem(i, 2, QtWidgets.QTableWidgetItem(runner[1]))
                     self.tableWidget.setItem(i, 0, QtWidgets.QTableWidgetItem(runner[0][0]))
                     self.tableWidget.setItem(i, 1, QtWidgets.QTableWidgetItem(runner[0][1]))
-                    self.tableWidget.setItem(i, 2, QtWidgets.QTableWidgetItem(runner[1]))
+                    
         except:
             print("not available")
 
@@ -180,6 +181,7 @@ class RecordsWindow(object):
         for i, runner in enumerate(self.wks.data):
                 for j, records in enumerate(runner[0]):
                     self.tableWidget.setItem(i, j, QtWidgets.QTableWidgetItem(records))
+                self.tableWidget.setItem(i, len(runner[0]), QtWidgets.QTableWidgetItem(runner[1]))
 
 class RunnerSpecificWindow(QtWidgets.QWidget):
     def __init__(self, runner):
