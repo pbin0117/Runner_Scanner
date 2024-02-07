@@ -1,4 +1,0 @@
-1. Add support for other file formats than pdf DONE
-2. implement other training types (repeats and 5k time trial) kinda
-3. create new database of runner individually (new google sheets called "Runners") ==> able to search 
-4. create way to open the program as a standalone
