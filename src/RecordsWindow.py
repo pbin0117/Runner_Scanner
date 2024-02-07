@@ -9,7 +9,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-import database
+import database as database
 from database import SheetRepeats, SheetTimeTrial
 import matplotlib
 
@@ -205,7 +205,6 @@ class RunnerSpecificWindow(QtWidgets.QWidget):
         self.tableWidget.setColumnCount(col)
         self.tableWidget.setRowCount(row)
 
-        print(runner[1])
         for i, record in enumerate(runner[1]):
             self.tableWidget.setItem(i, 0, QtWidgets.QTableWidgetItem(record.getDate()))
             self.tableWidget.setItem(i, 1, QtWidgets.QTableWidgetItem(record.getType()))
@@ -222,16 +221,11 @@ class RunnerSpecificWindow(QtWidgets.QWidget):
         # transform into comparable floats
         for time in times:
             temp = time.split(":")
-            newTime.append(round(int(temp[0]) + int(temp[1])/60, 2))
-
-        
+            newTime.append(round(int(temp[0]) + int(temp[1])/60, 2))   
 
         self.plotGraph.axes.plot(dates, newTime)
 
-        layout.addWidget(self.plotGraph)
-
-        
-            
+        layout.addWidget(self.plotGraph)        
 
         self.setLayout(layout)
 

@@ -79,32 +79,41 @@ class Runners(object):
             i += 4
 
     def saveRunner(self, name, record):
+        # if name doesn't exist
         if (name == ''):
             return None
+        
+        # if name is in the list of already prexisting names (Success Criteria C2)
         if name in self.names:
             index = self.names.index(name)
 
-            records = self.runners[index]
+            records = self.runners[index] # pull up existing records from the database 
+
             newCol = len(records[1]) + 1
 
+            # finding the correct index of the new record
             rangeColumn = chr(65 + newCol) # using the ascii table to find the range for columns
-            
             cellRange = rangeColumn + str(index*4 + 1) + ":" + rangeColumn + str(index * 4 + 4)
 
-            self.updateCell(cellRange, [[record[0]], [record[1]], [record[2]], [record[3]]])
+            # note record[0]: date, record[1]: type, record[2]: actual time, record[3]: avg 1k time
+            self.updateCell(cellRange, [[record[0]], [record[1]], [record[2]], [record[3]]]) 
             
+            # saved in local DB with the Record object for additional functionality 
             records[1].append(Record(record[0], record[1], record[2], record[3]))
-
             self.runners[index] = records
+        # if name is not in the list of names and is new (Success Criteria C1)
         else:
-            index = len(self.names)
+            index = len(self.names) # find the next empty slot where the new runner can be placed
             
+            # finding the correct index of the new name
             nameCellRange = "A" + str(index * 4 + 1) + ":" + "A" + str(index * 4 + 1)
             self.updateCell(nameCellRange, name)
 
+            # finding the correct index of the new name
             recordCellRange = "B" + str(index * 4 + 1) + ":" + "B" + str(index * 4 + 4)
             self.updateCell(recordCellRange, [[record[0]], [record[1]], [record[2]], [record[3]]])
-
+            
+            # save to local DB with the Record object for additional functionality 
             record = [Record(record[0], record[1], record[2], record[3])]
             self.runners.append((name, record))
             self.names.append(name)
@@ -142,11 +151,14 @@ class Sheet(object):
         self.data = [[]]
 
     def __init__(self, sheetName, document):
-        self.sheetName = sheetName
+        self.sheetName = sheetName # sets the sheetname as an attribute
 
+        # need the try/except to determine if the sheet already exists in the Google Sheets DB
         try:
+            # exists, then use it
             self.worksheet = document.worksheet(sheetName)
         except:
+            # doesn't exist, then create it
             self.worksheet = document.add_worksheet(title=sheetName, rows=100, cols=20) 
 
         self.numOfNames = 0
@@ -169,25 +181,41 @@ class Sheet(object):
         for ind in range(n):
             minIndex = ind
 
+            # run through the whole data
             for j in range(n):
+                # self.data[j] in format [(name, record, record, ...), avgTime]
+                # self.data[j][0][0] accesses the name
+
+                # automatically detects according to ASCII code
                 if self.data[j][0][0] > self.data[minIndex][0][0]:
                     minIndex = j
 
+                # switch!
                 (self.data[ind], self.data[minIndex]) = (self.data[minIndex], self.data[ind])
 
     def sortByAvgTime(self): # selection sort
-        n = self.numOfNames
+        n = self.numOfNames # how many iterations
 
         for ind in range(n):
-            minIndex = ind
-
+            # trying to find the smallest number
+            minIndex = ind 
+            
+            # run through the whole data
             for j in range(n):
+                # self.data[j] in format [(name, record, record, ...), avgTime]
+                # self.data[j][1] accesses the avgTime 
+
+                # compare
                 if self.data[j][1] > self.data[minIndex][1]:
                     minIndex = j
-
+                
+                # switch
                 (self.data[ind], self.data[minIndex]) = (self.data[minIndex], self.data[ind])
 
     def pasteSheet(self, data, typee, date):
+        return None
+    
+    def readSheet(self):
         return None
 
 class SheetTimeTrial(Sheet):
@@ -237,28 +265,34 @@ class SheetTimeTrial(Sheet):
 
     def calculateAvgTime(self):
         self.data = []
+        # ran for every runner
         for person in self.rawData:
             try:
-                record = person[1].split(":")
+                record = person[1].split(":") 
+
+                # format time from minute:seconds to seconds
                 time = int(record[0]) * 60 + int(record[1])
+
+                # calculate avg -- 5k / 5 = 1k time
                 avg = time / 5
 
+                # convert back to minute:seconds
                 minute = round(avg // 60)
                 second = round(avg % 60)
 
+                # possibility that second = 0 or second < 0; need formatting
                 if second == 0:
                     second = "00"
-
                 if second < 10:
                     second= "0" +str(second)
 
+                # int to string
                 avg = f"{minute}:{second}"
 
                 self.data.append((person, avg))
             except:
                 self.data.append((person, "error"))
-                print("invalid record")
-        
+                print("invalid record")      
 
 class SheetRepeats(Sheet):
     def __init__(self, sheetName, document):
@@ -317,7 +351,6 @@ class SheetRepeats(Sheet):
             self.distance = 1
 
         self.calculateAvgTime()
-
 
     def calculateAvgTime(self):
         self.data = []
@@ -382,20 +415,3 @@ if __name__ == "__main__":
     #             ['Harold', '4.1', '2,3', '10.2', '99.1', '7.2', '41', '23', ''],]
 
     # database.worksheets["Sheet1"].pasteSheet400(data)
-
-    
-
-
-
-
-
-
-# print("Rows: ", wks.row_count)
-# print("Cols: ", wks.col_count)
-
-# print(wks.acell('A9').value)
-# print(wks.get('A7:E9'))
-# # print(wks.get_all_records())
-
-# wks.update('A1', 'Heeyy')
-# wks.update('B1:C2', [['1', '2'], ['3', '4']])

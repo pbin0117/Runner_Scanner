@@ -22,16 +22,18 @@ class Gui(QMainWindow):
     def __init__(self):
         super(Gui, self).__init__()
 
-        self.setGeometry(200, 200, 800, 600)
-        self.setWindowTitle("Cross Country Data Logger")
+        self.setGeometry(200, 200, 800, 600) # setting the default size of the screen
+        self.setWindowTitle("Cross Country Data Logger")  # title
         
+        # initializing the three windows for future use
         self.mainFileWindow = MainFileWindow()
         self.scanFileWindow = ScanFileWindow()
         self.recordsWindow = RecordsWindow()
-
+        
+        # initializing the database 
         self.database = Database("Test")
 
-
+        # sets the current window to MainFileWindow (the start up menu) + all the buttons
         self.mainFileWindow.setupUi(self)
         self.mainFileWindow.ScanFileButton.clicked.connect(self.scanFileButtonFunc)
         self.mainFileWindow.RecordWindowButton.clicked.connect(self.recordFileButtonFunc)
@@ -49,17 +51,26 @@ class Gui(QMainWindow):
         self.recordsWindow.runnerSelectButton.clicked.connect(self.runnerRecordScreen)
         
     def submitted(self):
+        # brings which GoogleSheet worksheet is selected
         googleSheets = self.scanFileWindow.sheetSelect.currentText()
         print(googleSheets)
-        scanner = Scanner(self.scanFileWindow.imgfile)
 
-        data = scanner.extract_records(p_display=True)
-        self.database.addSheet(googleSheets, data) 
+        # have to check whether a valid image is uploaded or none at all
+        try:
+            # makes a local scanner object
+            scanner = Scanner(self.scanFileWindow.imgfile)
 
-        print(data)
-        print(type(self.database.worksheets[googleSheets]))
+            # scanner scans and extracts records
+            data = scanner.extract_records(p_display=True)
 
-        self.database.worksheets[googleSheets].pasteSheet(data[2:], data[0], data[1], self.database)
+            # create new local storage of the data
+            self.database.addSheet(googleSheets, data) 
+
+            # uploads it to Google Sheets Database
+            self.database.worksheets[googleSheets].pasteSheet(data[2:], data[0], data[1], self.database)
+        except:
+            # usually when no image is submitted is the except called
+            print("no image submitted!")
 
         self.mainFileWindow.setupUi(self)
         self.mainFileWindow.ScanFileButton.clicked.connect(self.scanFileButtonFunc)
